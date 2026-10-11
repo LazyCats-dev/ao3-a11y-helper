@@ -4,10 +4,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "typecheck": "bun check"
+    "typecheck": "bun check",
+    "test:browser": "vitest"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
     "@types/bun": "latest",
+    "@vitest/browser-playwright": "^5.0.3",
     "vitest": "^5.0.3"
   },
   "peerDependencies": {
