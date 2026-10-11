@@ -1,8 +1,8 @@
 {
   "name": "ao3-a11y-helper",
-  "module": "index.ts",
-  "type": "module",
   "private": true,
+  "type": "module",
+  "module": "index.ts",
   "scripts": {
     "typecheck": "bun check",
     "test:browser": "vitest",
