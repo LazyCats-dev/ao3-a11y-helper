@@ -7,7 +7,8 @@
     "typecheck": "bun check"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
     "typescript": "^7"
