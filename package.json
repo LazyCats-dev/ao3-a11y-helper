@@ -5,12 +5,15 @@
   "private": true,
   "scripts": {
     "typecheck": "bun check",
-    "test:browser": "vitest"
+    "test:browser": "vitest",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
     "@types/bun": "latest",
     "@vitest/browser-playwright": "^5.0.3",
+    "oxlint": "^1.87.0",
     "vitest": "^5.0.3"
   },
   "peerDependencies": {
