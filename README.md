@@ -4,6 +4,8 @@ A lightweight, zero-permission Manifest V3 browser extension for **Chrome**, **F
 
 When you open AO3's **Post New Work**, **Edit Work**, **Add Chapter**, or **Edit Chapter** page, the extension adds an **AO3 Accessibility Check** panel directly beneath the work HTML `<textarea>`. As you write or paste your story HTML, it highlights accessibility barriers that can be fixed using AO3's allowed HTML subset and lets you jump directly to the offending line in the editor.
 
+![AO3 Work Text HTML editor with the AO3 Accessibility Check panel below it showing two errors: "Image is missing an alt attribute" on Line 1 and "Link has no accessible text" on Line 2, each with a "Highlight in HTML" button.](./docs/screenshot.png)
+
 ---
 
 ## Features & Accessibility Rules Checked

@@ -43,8 +43,7 @@ English
 | Asset | Dimensions | Status | Filename |
 |-------|-----------|--------|----------|
 | Store Icon [REQUIRED] | 128×128 PNG | ✅ Ready | `src/icons/icon-128.png` |
-| Screenshot 1 [REQUIRED] | 1280×800 or 640×400 | ⬜ Not created | |
-| Screenshot 2 [RECOMMENDED] | 1280×800 or 640×400 | ⬜ Not created | |
+| Screenshot 1 [REQUIRED] | PNG | ✅ Ready | `docs/screenshot.png` |
 
 ### Screenshot Notes
 - Screenshot 1: Show AO3's Post New Work page with sample HTML in the Work Text box and the AO3 Accessibility Check panel beneath it displaying warnings for a missing `alt` attribute and an ASCII `***` scene break.
