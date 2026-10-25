@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-and-build:
+    name: Typecheck, Browser Tests, and Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers (Chromium & Firefox)
+        run: bunx playwright install --with-deps chromium firefox
+
+      - name: Run TypeScript typecheck
+        run: bun run typecheck
+
+      - name: Run Vitest browser & unit tests
+        run: bun run test
+
+      - name: Build and package extension archives
+        run: bun run package
+
+      - name: Upload packaged release archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-packages
+          path: release/*.zip
+          if-no-files-found: error

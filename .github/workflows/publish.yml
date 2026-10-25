@@ -1,0 +1,127 @@
+name: Publish Browser Extensions
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_chrome:
+        description: "Publish to Chrome Web Store"
+        type: boolean
+        default: true
+      publish_firefox:
+        description: "Publish to Firefox Add-ons (AMO - Desktop & Android)"
+        type: boolean
+        default: true
+      publish_edge:
+        description: "Publish to Microsoft Edge Add-ons"
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    name: Build, Test & Package Extensions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers (Chromium & Firefox)
+        run: bunx playwright install --with-deps chromium firefox
+
+      - name: Run typecheck and tests
+        run: |
+          bun run typecheck
+          bun run test
+
+      - name: Package store archives
+        run: bun run package
+
+      - name: Upload packaged archives as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: release/*.zip
+          if-no-files-found: error
+
+      - name: Attach ZIP packages to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" release/*.zip --clobber
+
+  publish-chrome:
+    name: Publish to Chrome Web Store
+    needs: build
+    if: github.event_name == 'release' || inputs.publish_chrome
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download packaged archives
+        uses: actions/download-artifact@v4
+        with:
+          name: release-packages
+          path: release
+
+      - name: Upload & publish to Chrome Web Store
+        uses: wdzeng/chrome-extension@v2
+        with:
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          publisher-id: ${{ secrets.CHROME_PUBLISHER_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          zip-path: release/ao3-a11y-helper-chrome-v*.zip
+
+  publish-firefox:
+    name: Publish to Firefox Add-ons (AMO)
+    needs: build
+    if: github.event_name == 'release' || inputs.publish_firefox
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download packaged archives
+        uses: actions/download-artifact@v4
+        with:
+          name: release-packages
+          path: release
+
+      - name: Upload & publish to Firefox Add-ons (Desktop & Android)
+        uses: wdzeng/firefox-addon@v2
+        with:
+          addon-guid: ${{ secrets.FIREFOX_ADDON_GUID || 'ao3-a11y-helper@archiveofourown.org' }}
+          jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
+          xpi-path: release/ao3-a11y-helper-firefox-v*.zip
+          source-file-path: release/ao3-a11y-helper-source-v*.zip
+          approval-notes: "Build with Bun (`bun install && bun run build`). Outputs unpacked extension to dist/firefox."
+
+  publish-edge:
+    name: Publish to Microsoft Edge Add-ons
+    needs: build
+    if: github.event_name == 'release' || inputs.publish_edge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download packaged archives
+        uses: actions/download-artifact@v4
+        with:
+          name: release-packages
+          path: release
+
+      - name: Upload & publish to Microsoft Edge Add-ons
+        uses: wdzeng/edge-addon@v2
+        with:
+          product-id: ${{ secrets.EDGE_PRODUCT_ID }}
+          client-id: ${{ secrets.EDGE_CLIENT_ID }}
+          api-key: ${{ secrets.EDGE_API_KEY }}
+          zip-path: release/ao3-a11y-helper-edge-v*.zip
