@@ -1,13 +1,24 @@
 {
   "name": "ao3-a11y-helper",
-  "module": "index.ts",
+  "version": "1.0.0",
+  "description": "Browser extension that checks AO3 work HTML for common accessibility issues before posting.",
+  "module": "src/linter/index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "typecheck": "bun check"
+    "typecheck": "bun check",
+    "test": "bun --bun vitest run",
+    "generate:icons": "bun run scripts/generate-icons.ts",
+    "build": "bun run scripts/build.ts",
+    "package": "bun run scripts/package.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@vitest/browser-playwright": "^5.0.5",
+    "axe-core": "^4.14.0",
+    "playwright": "^1.64.1",
+    "vitest": "^5.0.5",
+    "vitest-axe": "^0.1.0"
   },
   "peerDependencies": {
     "typescript": "^7"
