@@ -73,48 +73,83 @@ export function renderIconPng(size: number): Uint8Array {
     return Math.hypot(px - projX, py - projY);
   }
 
+  function signedDistRoundedRect(
+    px: number,
+    py: number,
+    minB: number,
+    maxB: number
+  ): number {
+    const halfExtent = (maxB - minB) * 0.5 - radius;
+    const center = (minB + maxB) * 0.5;
+    const dx = Math.abs(px - center) - halfExtent;
+    const dy = Math.abs(py - center) - halfExtent;
+    const outsideDist = Math.hypot(Math.max(dx, 0), Math.max(dy, 0));
+    const insideDist = Math.min(Math.max(dx, dy), 0);
+    return outsideDist + insideDist - radius;
+  }
+
+  function smoothCoverage(signedDist: number): number {
+    // 1px analytical anti-aliasing ramp centered on the edge ([-0.5, +0.5])
+    const t = Math.max(0, Math.min(1, 0.5 - signedDist));
+    return t * t * (3 - 2 * t);
+  }
+
+  const subSamples = 4;
+  const invSub = 1 / subSamples;
+  const totalSubSamples = subSamples * subSamples;
+  const minB = margin;
+  const maxB = size - margin;
+
   for (let y = 0; y < size; y++) {
     const rowStart = y * (1 + size * 4);
     rawData[rowStart] = 0; // Filter type 0 (None)
 
     for (let x = 0; x < size; x++) {
       const pixelOffset = rowStart + 1 + x * 4;
-      const cx = x + 0.5;
-      const cy = y + 0.5;
+      let accumR = 0;
+      let accumG = 0;
+      let accumB = 0;
+      let accumA = 0;
 
-      // Check rounded rectangle bounds
-      const minB = margin;
-      const maxB = size - margin;
-      const qx = Math.max(minB + radius - cx, 0, cx - (maxB - radius));
-      const qy = Math.max(minB + radius - cy, 0, cy - (maxB - radius));
-      const distRect = Math.hypot(qx, qy) - radius;
+      for (let sy = 0; sy < subSamples; sy++) {
+        const py = y + (sy + 0.5) * invSub;
+        for (let sx = 0; sx < subSamples; sx++) {
+          const px = x + (sx + 0.5) * invSub;
 
-      if (distRect > 0.5) {
-        // Transparent outside rounded square
+          const distRect = signedDistRoundedRect(px, py, minB, maxB);
+          const rectAlpha = smoothCoverage(distRect);
+          if (rectAlpha <= 0) {
+            continue;
+          }
+
+          const d1 = distToSegment(px, py, p1x, p1y, p2x, p2y);
+          const d2 = distToSegment(px, py, p2x, p2y, p3x, p3y);
+          const distCheck = Math.min(d1, d2) - strokeHalfWidth;
+          const checkBlend = smoothCoverage(distCheck);
+
+          // Blend between AO3 Crimson (#990000) and White (#ffffff), premultiplied by rectAlpha
+          const r = 153 + (255 - 153) * checkBlend;
+          const g = 255 * checkBlend;
+          const b = 255 * checkBlend;
+
+          accumR += r * rectAlpha;
+          accumG += g * rectAlpha;
+          accumB += b * rectAlpha;
+          accumA += rectAlpha;
+        }
+      }
+
+      if (accumA <= 0) {
         rawData[pixelOffset] = 0;
         rawData[pixelOffset + 1] = 0;
         rawData[pixelOffset + 2] = 0;
         rawData[pixelOffset + 3] = 0;
-        continue;
-      }
-
-      // Check distance to checkmark
-      const d1 = distToSegment(cx, cy, p1x, p1y, p2x, p2y);
-      const d2 = distToSegment(cx, cy, p2x, p2y, p3x, p3y);
-      const distCheck = Math.min(d1, d2);
-
-      if (distCheck <= strokeHalfWidth) {
-        // White foreground emblem (#ffffff)
-        rawData[pixelOffset] = 255;
-        rawData[pixelOffset + 1] = 255;
-        rawData[pixelOffset + 2] = 255;
-        rawData[pixelOffset + 3] = 255;
       } else {
-        // AO3 Crimson background (#990000)
-        rawData[pixelOffset] = 153;
-        rawData[pixelOffset + 1] = 0;
-        rawData[pixelOffset + 2] = 0;
-        rawData[pixelOffset + 3] = 255;
+        // Un-premultiply RGB by total alpha coverage
+        rawData[pixelOffset] = Math.round(accumR / accumA);
+        rawData[pixelOffset + 1] = Math.round(accumG / accumA);
+        rawData[pixelOffset + 2] = Math.round(accumB / accumA);
+        rawData[pixelOffset + 3] = Math.round((accumA / totalSubSamples) * 255);
       }
     }
   }

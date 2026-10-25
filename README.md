@@ -1,4 +1,4 @@
-# AO3 Accessibility Helper
+# <img src="./src/icons/icon-128.png" alt="" width="48" height="48" align="absmiddle"> AO3 Accessibility Helper
 
 A lightweight, zero-permission Manifest V3 browser extension for **Chrome**, **Firefox** (Desktop & **Firefox for Android**), and **Microsoft Edge** that checks your work HTML on **Archive of Our Own (AO3)** for common accessibility issues before you post.
 
