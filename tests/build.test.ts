@@ -118,6 +118,12 @@ describe("extension icons, manifests, and build pipeline", () => {
       firefoxManifest.browser_specific_settings?.gecko.strict_min_version
     ).toBe("109.0");
     expect(
+      firefoxManifest.browser_specific_settings?.gecko
+        .data_collection_permissions
+    ).toEqual({
+      required: ["none"],
+    });
+    expect(
       firefoxManifest.browser_specific_settings?.gecko_android
         .strict_min_version
     ).toBe("120.0");

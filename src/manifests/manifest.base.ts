@@ -33,6 +33,9 @@ export interface ExtensionManifest {
     gecko: {
       id: string;
       strict_min_version: string;
+      data_collection_permissions: {
+        required: readonly ["none"];
+      };
     };
     gecko_android: {
       strict_min_version: string;
@@ -79,6 +82,9 @@ export function createManifest(
       gecko: {
         id: "ao3-a11y-helper@archiveofourown.org",
         strict_min_version: "109.0",
+        data_collection_permissions: {
+          required: ["none"],
+        },
       },
       gecko_android: {
         strict_min_version: "120.0",
